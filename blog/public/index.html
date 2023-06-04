@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>愷哥程式-APCS檢定教學</title>
+  <style>
+    body {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    #articleList {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    #articleList li {
+      margin-bottom: 10px;
+    }
+
+    .articleTitle {
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .articleDate {
+      font-size: 12px;
+      color: gray;
+    }
+  </style>
+</head>
+<body>
+  <h1>愷哥程式-APCS檢定教學</h1>
+
+  <h2>最近的文章</h2>
+  <ul id="articleList"></ul>
+
+  <h2>上傳新文章</h2>
+  <form id="uploadForm">
+    <label for="title">標題：</label>
+    <input type="text" id="title" name="title"><br><br>
+    <label for="content">內容：</label><br>
+    <textarea id="content" name="content" rows="5" cols="50"></textarea><br><br>
+    <button type="submit">上傳文章</button>
+  </form>
+
+  <script>
+    // 當頁面載入完成後，發送 GET 請求以獲取文章列表
+    window.addEventListener('load', () => {
+      fetch('/api/articles')
+        .then(response => response.json())
+        .then(data => {
+          // 將獲取到的文章列表渲染到頁面上
+          const articleList = document.getElementById('articleList');
+          articleList.innerHTML = '';
+          data.forEach(article => {
+            const li = document.createElement('li');
+            const titleElement = document.createElement('h3');
+            titleElement.innerText = article.title;
+            const dateElement = document.createElement('p');
+            dateElement.innerText = `建立日期：${article.date}`;
+            const contentElement = document.createElement('p');
+            contentElement.innerText = article.content;
+            titleElement.classList.add('articleTitle');
+            dateElement.classList.add('articleDate');
+            li.appendChild(titleElement);
+            li.appendChild(dateElement);
+            li.appendChild(contentElement);
+            articleList.appendChild(li);
+          });
+        });
+    });
+
+    // 監聽表單提交事件
+    const uploadForm = document.getElementById('uploadForm');
+    uploadForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+
+      // 獲取表單數據
+      const formData = new FormData(uploadForm);
+      const title = formData.get('title');
+      const content = formData.get('content');
+
+      // 發送 POST 請求以上傳文章
+      fetch('/api/articles', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ title, content })
+      })
+      .then(response => response.json())
+      .then(data => {
+        // 顯示成功訊息並打開新建立的文章網頁
+        alert(data.message);
+        window.open(`/articles/${data.article.id}`);
+        window.location.reload();
+      })
+      .catch(error => {
+        // 顯示錯誤訊息
+        alert('發生錯誤，請重試');
+        console.error(error);
+      });
+    });
+  </script>
+</body>
+</html>
